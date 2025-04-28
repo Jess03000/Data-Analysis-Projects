@@ -1,0 +1,117 @@
+---
+title: "BIST0535 Final Project"
+author: "Jessica O'Dell"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+      theme: united
+      toc: yes
+      toc_float:
+        collapsed: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(haven)
+library(tidyverse)
+library(labelled)
+library(gtsummary)
+```
+
+
+```{r read in baseline, echo = FALSE}
+
+baseline <- read_sas("input/baseline.sas7bdat")
+ 
+   baseline_anyl <- baseline %>%
+   drop_na(age)  %>%
+       mutate(ivdrug = na_if(ivdrug, "") )%>%
+drop_na(ivdrug)  %>%
+drop_na(symptom) %>%
+drop_na(scrcd4)  %>%
+  mutate(symptom = as.factor(symptom), 
+         symptom = as.factor(symptom))
+ 
+```
+
+# Introduction
+
+### Background
+
+This double-blind study evaluated treatment with either a single nucleoside or two nucleosides in adults infected with human immunodeficiency virus type 1 (HIV-1) whose CD4 cell counts were from 200 to 500 per cubic millimeter.
+
+### Methods 
+
+We randomly assigned 2467 HIV-1--infected patients (43 percent without prior antiretroviral treatment) to one of four daily regimens: 600 mg of zidovudine; 600 mg of zidovudine plus 400 mg of didanosine; 600 mg of zidovudine plus 2.25 mg of zalcitabine; or 400 mg of didanosine. The primary end point was a > or = 50 percent decline in the CD4 cell count, development of the acquired immunodeficiency syndrome (AIDS), or death.
+
+
+# Data Analysis
+
+For this project, I will be interested in looking at how age, sex, iv drug use history, and symptomatic infection are related to cd4 count at screening in HIV infections. I will also investigate how various characteristics that are associated with higher or lower cd4 cell counts 
+
+## Numeric Data Overview
+Continuous data was collected on baseline characteristics and cd4 cell counts. The details are below:
+
+- age at randomization (age)
+- screening cd4 cell count (scrcd4)
+- weight (wtkg)
+- Average of two baseline cd4 cell counts (avecd4)
+- the final endpoint of a cd4 cell count that was 50% below baseline (b50cd4)
+- number of days of prior antiretroviral therapy (preanti)
+
+
+## Categorical Data Overview
+Categorical data was collected on baseline, demographic characteristics, treatment, and a number disease related characteristics. Participants said yes or no to iv drug use and homosexual behavior. They also were stratified by antiretroviral therapy prior treatment. The details are below:
+
+- Gender: M/F (sex)
+- race: specifically white, black, hispanic, or other (raceth)
+- hemophilia status (hemophi)
+- birthdate (birthdt)
+- homosexual behavior (homosex)
+- karnofsky score 0-100 (karnof)
+- If the patient has a history of ivdrug use (ivdrug)
+- If patient display symptomatic HIV infection (symptom)
+- Did patient have any history of antiretroviral therapy (strat)
+- antiretroviral therapy history stratified by if they had no therapy, less than 52 weeks, or more than 52 weeks of therapy (strat2)
+- Did Patient have any zidovudine exposure prior to enrollment in study (zdvprior)
+- Did Patient have zidovudine exposure in the 30 days prior to enrollment in study (zdv30)
+- Did patient have other antiretroviral therapy before study (othprior)
+
+
+## Descriptive Statistics
+
+```{r descriptive statistics}
+
+baseline_anyl %>% 
+  tbl_summary(
+    by = strat2,
+    include = c(age, birthdt, sex, raceth, hemophi, homosex, karnof, ivdrug, symptom, strat, strat2, scrcd4, wtkg, avecd4, b50cd4, preanti, zdvprior, zdv30, othprior),
+              statistic = list(all_continuous() ~ "{mean} ({sd})")) %>% 
+  add_overall() 
+```
+## Data Visualizations 
+
+Below we look at the relationship between age, sex, iv drug use, symptomatic infection, and how they are related to cd4 count at screening. The first figure shows a scatterplot of age, cd4 cell count at screening, and symptomatic infection. The graph shows that symptomatic infection was fairly spread out in terms of age and cd4 counts but it looks like there are slightly more symptomatic infections in middle aged patients with low cd4 counts, possibly because that majority of data. In graph 2, patients who had a symptomatic infection were associated with lower cd4 cell counts than those that did not in general. Cd4 cell count did not differ in terms of whether or not patient had a history of iv drug use in those without a symptomatic infection but were slightly higher in those who used iv drugs than those that did not in terms of symptomatic infection. In graph 3, female patients had a slightly higher cd4 count on average than males, most obvious in symptomatic infection.
+
+
+```{r data visualizations 3 visual}
+
+
+ggplot(baseline_anyl) +
+  geom_point (
+    mapping = aes(x = age, y = scrcd4, color= symptom)
+  )
+  
+  ggplot(baseline_anyl) +
+  geom_boxplot(
+    mapping = aes(x = symptom, y = scrcd4, color= ivdrug)
+  ) +
+  theme_minimal() 
+  
+  ggplot(baseline_anyl)+
+  geom_boxplot(
+  mapping = aes(x = symptom, y = scrcd4, color= sex)) +
+  geom_smooth(aes(x= symptom, y=age))
+  
+```
