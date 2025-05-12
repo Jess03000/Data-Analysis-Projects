@@ -1,0 +1,35 @@
+#Python Example of Plotting Kaplan-Meier Curve and Cox Proportional Hazard Regression
+#Jessica O'Dell 5/12/25
+
+# Example random data
+np.random.seed(42)
+n = 100
+data = pd.DataFrame({
+    'duration': np.random.exponential(scale=10, size=n),  
+    'event': np.random.binomial(1, 0.7, size=n),           # 1=event occurred, 0=censored
+    'age': np.random.normal(50, 10, size=n),               # covariate
+    'treatment': np.random.binomial(1, 0.5, size=n)        # 0=control, 1=treated
+})
+
+# Kaplan-Meier Survival Curve
+kmf = KaplanMeierFitter()
+kmf.fit(data['duration'], event_observed=data['event'])
+
+# Plot KM curve
+kmf.plot_survival_function()
+plt.title('Kaplan-Meier Survival Curve')
+plt.xlabel('Time')
+plt.ylabel('Survival Probability')
+plt.show()
+
+# Cox Proportional Hazards Regression
+cph = CoxPHFitter()
+cph.fit(data, duration_col='duration', event_col='event')
+
+# Summary of regression results
+cph.print_summary()
+
+# Plotting hazard ratios
+cph.plot()
+plt.title('Hazard Ratios (Cox Regression)')
+plt.show()
